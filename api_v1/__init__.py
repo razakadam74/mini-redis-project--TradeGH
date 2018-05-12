@@ -17,7 +17,6 @@ api = Api(app, version='1.0', title='Mini Redis Server',
 
 
 
-
-from .models import *
-from .controller import *
+from api_v1.models import *
+from api_v1.endpoints import string_endpoints
 

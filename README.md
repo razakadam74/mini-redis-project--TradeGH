@@ -1,4 +1,6 @@
-# Trade GH API
+# Mini Redis Project by TradeGH
+This is the Take-Home Project specification for candidates for Engineering @ Trade
+
 
 ##Install and start redis
 ```bash
@@ -30,7 +32,7 @@ docker run -d -p 5000:5000 api_v1
 ```bash
 $ docker ps
 CONTAINER ID        IMAGE               COMMAND             CREATED              STATUS              PORTS                    NAMES
-e1db3bcb1513        infer               "python run.py"     About a minute ago   Up About a minute   0.0.0.0:5000->5000/tcp   heuristic_hopper
+e1db3bcb1513        api_v1               "python run.py"     About a minute ago   Up About a minute   0.0.0.0:5000->5000/tcp   heuristic_hopper
 
 ```
 
@@ -41,6 +43,11 @@ $ docker logs e1db3bcb1513
  * Restarting with stat
  * Debugger is active!
  * Debugger PIN: 268-732-459
+```
+
+#####Run the API without Docker Container (running app)
+```sh
+python run.py
 ```
 
 #####Access the application at the address [http://localhost:5000/](http://localhost:5000/)

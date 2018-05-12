@@ -1,15 +1,14 @@
-from .models import StringDAO
 from flask_restplus import fields
 from .. import api
 
+# This namespace is the start of the path i.e., /strings
+string_namespace = api.namespace('strings', description='Strings operations')
 
-string_namespace = api.namespace('Strings', description='String operations')
-
-string = api.model('String', {
-    'id': fields.Integer(readOnly=True, description='The string unique identifier'),
-    'string': fields.String(required=True, description='The string')
+# Define the model so that the docs reflect what can be sent
+string_model = api.model('String', {
+    'id': fields.Integer(readOnly=True,
+                         description='The unique id assigned internally by service'),
+    'name': fields.String(required=True,
+                          description='The string')
 })
-
-
-stringDAO = StringDAO()
 
