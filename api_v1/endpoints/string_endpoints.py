@@ -1,40 +1,10 @@
 from flask_restplus import Resource
 from api_v1 import api, app
-from flask import make_response, jsonify
 from werkzeug.exceptions import NotFound
 from flask_api import status  # HTTP Status Codes
 from api_v1.utils import check_content_type
-from api_v1.utils import DatabaseConnectionError, DataValidationError
 from api_v1.models import string_namespace, string_model
-from api_v1.models.string_model import String
-
-
-######################################################################
-# Special Error Handlers
-######################################################################
-@api.errorhandler(DataValidationError)
-def request_validation_error(error):
-    """ Handles Value Errors from bad data """
-    message = error.message or str(error)
-    app.logger.info(message)
-    return {'status': 400, 'error': 'Bad Request', 'message': message}, 400
-
-
-@api.errorhandler(DatabaseConnectionError)
-def database_connection_error(error):
-    """ Handles Database Errors from connection attempts """
-    message = error.message or str(error)
-    app.logger.critical(message)
-    return {'status': 500, 'error': 'Server Error', 'message': message}, 500
-
-
-######################################################################
-# GET HEALTH CHECK
-######################################################################
-@app.route('/healthcheck')
-def healthcheck():
-    """ Let them know the server is healthy """
-    return make_response(jsonify(status=200, message='Healthy'), status.HTTP_200_OK)
+from api_v1.models.str_model import String
 
 
 ######################################################################
@@ -61,7 +31,7 @@ class StringCollection(Resource):
     # ------------------------------------------------------------------
     # ADD A NEW STRING
     # ------------------------------------------------------------------
-    @string_namespace.doc('create_string')
+    @string_namespace.doc('append_string_to_list')
     @string_namespace.expect(string_model)
     @string_namespace.response(400, 'The posted data was not valid')
     @string_namespace.response(201, 'String created successfully')
@@ -76,42 +46,42 @@ class StringCollection(Resource):
         app.logger.info('Payload = %s', api.payload)
         string.deserialize(api.payload)
         string.save()
-        app.logger.info('String with new id [%s] saved!', string.id)
-        # location_url = api.url_for(PetResource, id=string.id, _external=True)
+        app.logger.info('String with new key [%s] saved!', string.key)
+        # location_url = api.url_for(PetResource, key=string.key, _external=True)
         # return string.serialize(), status.HTTP_201_CREATED, {'Location': location_url}
         return string.serialize(), status.HTTP_201_CREATED
 
 
 ######################################################################
-#  PATH: /strings/{id}
+#  PATH: /strings/{key}
 ######################################################################
-@string_namespace.route('/<int:id>')
-@string_namespace.param('id', 'The String identifier')
+@string_namespace.route('/<string:key>')
+@string_namespace.param('key', 'The String identifier')
 class StringResource(Resource):
     """
     PetResource class
 
     Allows the manipulation of a single String
-    GET /string{id} - Returns a String with the id
-    PUT /string{id} - Update a String with the id
-    DELETE /string{id} -  Deletes a String with the id
+    GET /string{key} - Returns a String with the key
+    PUT /string{key} - Update a String with the key
+    DELETE /string{key} -  Deletes a String with the key
     """
 
     # ------------------------------------------------------------------
     # RETRIEVE A STRING
     # ------------------------------------------------------------------
-    @string_namespace.doc('get_strings')
+    @string_namespace.doc('get_string')
     @string_namespace.response(404, 'String not found')
     @string_namespace.marshal_with(string_model)
-    def get(self, id):
+    def get(self, key):
         """
         Retrieve a single String
-        This endpoint will return a String based on it's id
+        This endpoint will return a String based on it's key
         """
-        app.logger.info("Request to Retrieve a string with id [%s]", id)
-        string = String.find(id)
+        app.logger.info("Request to Retrieve a string with key [%s]", key)
+        string = String.find(key)
         if not string:
-            raise NotFound("String with id '{}' was not found.".format(id))
+            raise NotFound("String with key '{}' was not found.".format(key))
         return string.serialize(), status.HTTP_200_OK
 
     # ------------------------------------------------------------------
@@ -122,22 +92,22 @@ class StringResource(Resource):
     @string_namespace.response(400, 'The posted String data was not valid')
     @string_namespace.expect(string_model)
     @string_namespace.marshal_with(string_model)
-    def put(self, id):
+    def put(self, key):
         """
         Update a String
         This endpoint will update a String based the body that is posted
         """
-        app.logger.info('Request to Update a string with id [%s]', id)
+        app.logger.info('Request to Update a string with key [%s]', key)
         check_content_type('application/json')
-        string = String.find(id)
+        string = String.find(key)
         if not string:
-            # api.abort(404, "String with id '{}' was not found.".format(id))
-            raise NotFound('String with id [{}] was not found.'.format(id))
+            # api.abort(404, "String with key '{}' was not found.".format(key))
+            raise NotFound('String with key [{}] was not found.'.format(key))
         # data = request.get_json()
         data = api.payload
         app.logger.info(data)
         string.deserialize(data)
-        string.id = id
+        string.key = key
         string.save()
         return string.serialize(), status.HTTP_200_OK
 
@@ -146,24 +116,17 @@ class StringResource(Resource):
     # ------------------------------------------------------------------
     @string_namespace.doc('delete_strings')
     @string_namespace.response(204, 'String deleted')
-    def delete(self, id):
+    def delete(self, key):
         """
         Delete a String
 
-        This endpoint will delete a String based the id specified in the path
+        This endpoint will delete a String based the key specified in the path
         """
-        app.logger.info('Request to Delete a string with id [%s]', id)
-        string = String.find(id)
+        app.logger.info('Request to Delete a string with key [%s]', key)
+        string = String.find(key)
         if string:
             string.delete()
-        return '', status.HTTP_204_NO_CONTENT
+        return 'String deleted', status.HTTP_204_NO_CONTENT
 
 
-######################################################################
-# DELETE ALL STRING DATA (for testing only)
-######################################################################
-@app.route('/strings/reset', methods=['DELETE'])
-def strings_reset():
-    """ Removes all string from the database """
-    String.remove_all()
-    return make_response('', status.HTTP_204_NO_CONTENT)
+

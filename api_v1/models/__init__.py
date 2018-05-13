@@ -6,9 +6,9 @@ string_namespace = api.namespace('strings', description='Strings operations')
 
 # Define the model so that the docs reflect what can be sent
 string_model = api.model('String', {
-    'id': fields.Integer(readOnly=True,
+    'key': fields.String(readOnly=True,
                          description='The unique id assigned internally by service'),
-    'name': fields.String(required=True,
+    'value': fields.String(required=True,
                           description='The string')
 })
 

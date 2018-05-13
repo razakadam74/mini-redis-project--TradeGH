@@ -14,40 +14,40 @@ from api_v1 import redis_store
 class String(object):
     logger = logging.getLogger(__name__)
     schema = {
-        'id': {'type': 'integer'},
-        'name': {'type': 'string', 'required': True}
+        'key': {'type': 'string', 'required': True},
+        'value': {'type': 'string', 'required': True}
         }
     __validator = Validator(schema)
 
-    def __init__(self, id=0, name=None):
+    def __init__(self, key = None, value=None):
         """ Constructor """
-        self.id = int(id)
-        self.name = name
+        self.key = key
+        self.value = value
 
     def save(self):
         """ Saves a string in the database """
-        if self.name is None:   # name is the only required field
-            raise DataValidationError('name attribute is not set')
-        if self.id == 0:
-            self.id = String.__next_index()
-        redis_store.set(String.key(self.id), pickle.dumps(self.serialize()))
+        if self.value is None:
+            raise DataValidationError('value attribute is not set')
+        if self.key is None:
+            raise DataValidationError('key attribute is not set')
+        redis_store.set(String.generate_key(self.key), pickle.dumps(self.serialize()))
 
     def delete(self):
         """ Deletes a Pet from the database """
-        redis_store.delete(String.key(self.id))
-
+        redis_store.delete(String.generate_key(self.key))
 
     def serialize(self):
         """ serializes a Pet into a dictionary """
         return {
-            "id": self.id,
-            "name": self.name
+            "key": self.key,
+            "value": self.value
         }
 
     def deserialize(self, data):
         """ deserializes a Pet my marshalling the data """
         if isinstance(data, dict) and String.__validator.validate(data):
-            self.name = data['name']
+            self.key = data['key']
+            self.value = data['value']
         else:
             raise DataValidationError('Invalid pet data: ' + str(String.__validator.errors))
         return self
@@ -63,8 +63,8 @@ class String(object):
         return redis_store.incr(String.__name__.lower() + '-index')
 
     @staticmethod
-    def key(value):
-        """ Creates a Redis key using class name and value """
+    def generate_key(value):
+        """ Creates a Redis key using class value and value """
         return '{}:{}'.format(String.__name__.lower(), value)
 
     @staticmethod
@@ -77,9 +77,9 @@ class String(object):
         """ Query that returns all Pets """
         # results = [Pet.from_dict(redis.hgetall(key)) for key in redis.keys() if key != 'index']
         results = []
-        for key in redis_store.keys(String.key('*')):
+        for key in redis_store.keys(String.generate_key('*')):
             data = pickle.loads(redis_store.get(key))
-            string = String(data['id']).deserialize(data)
+            string = String(data['key']).deserialize(data)
             results.append(string)
         return results
 
@@ -88,11 +88,11 @@ class String(object):
     ######################################################################
 
     @staticmethod
-    def find(id):
-        """ Query that finds Pets by their id """
-        key = String.key(id)
+    def find(key):
+        """ Query that finds Pets by their key """
+        key = String.generate_key(key)
         if redis_store.exists(key):
             data = pickle.loads(redis_store.get(key))
-            pet = String(data['id']).deserialize(data)
-            return pet
+            string = String(key=data['key'], value= data['value']).deserialize(data)
+            return string
         return None

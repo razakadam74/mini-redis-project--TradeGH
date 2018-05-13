@@ -47,6 +47,7 @@ $ docker logs e1db3bcb1513
 
 #####Run the API without Docker Container (running app)
 ```sh
+pip install --trusted-host pypi.python.org -r requirements.txt   #install project dependencies
 python run.py
 ```
 
