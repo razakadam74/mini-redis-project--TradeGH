@@ -21,3 +21,12 @@ list_model = api.model('List', {
     'key': fields.String(readOnly=True, description='The unique id assigned to list'),
     'value': fields.List(required=True, cls_or_instance=fields.String, description='The List')
 })
+
+list_model_append = api.model('ListAppend', {
+    'key': fields.String(readOnly=True, description='The unique id assigned to list'),
+    'value': fields.String(required=True,  description='String to append')
+})
+
+list_model_pop = api.model('ListPop', {
+    'key': fields.String(readOnly=True, description='The unique id assigned to list')
+})

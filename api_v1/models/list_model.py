@@ -32,13 +32,6 @@ class List(object):
             raise DataValidationError('key attribute is not set')
         redis_store.set(List.generate_key(self.key), pickle.dumps(self.serialize()))
 
-    def append(self, data):
-        if isinstance(data, str):
-            pass
-
-    def pop(self):
-        pass
-
     def delete(self):
         """ Deletes a List from the database """
         redis_store.delete(List.generate_key(self.key))
@@ -58,6 +51,8 @@ class List(object):
         else:
             raise DataValidationError('Invalid list data: ' + str(List.__validator.errors))
         return self
+
+
 
 
 
@@ -104,3 +99,33 @@ class List(object):
             list = List(key=data['key'], value= data['value']).deserialize(data)
             return list
         return None
+
+    ######################################################################
+    #  APPEND AND POP   M E T H O D S
+    ######################################################################
+    @staticmethod
+    def append(payload):
+        key = payload.get('key', None)
+        value = payload.get('value', None)
+        if not key:
+            raise DataValidationError('key attribute is not found')
+        if not value:
+            raise DataValidationError('value attribute is not found')
+        list = List.find(key)
+        if list:
+            list.value.append(value)
+            list.save()
+            return list
+        raise DataValidationError('key attribute is not found')
+
+    @staticmethod
+    def pop(payload):
+        key = payload.get('key', None)
+        if not key:
+            raise DataValidationError('key attribute is not found')
+        list = List.find(key)
+        if list:
+            item = list.value.pop()
+            list.save()
+            return item
+        raise DataValidationError('key attribute is not found')

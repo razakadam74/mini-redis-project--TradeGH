@@ -24,6 +24,10 @@ class StringCollection(Resource):
     @string_namespace.doc('list_strings')
     @string_namespace.marshal_list_with(string_model)
     def get(self):
+        """
+        Return a list of all String values
+        This endpoint will create a String based the data in the body that is posted
+        """
         strings = String.all()
         results = [string.serialize() for string in strings]
         return results, status.HTTP_200_OK
@@ -38,7 +42,7 @@ class StringCollection(Resource):
     @string_namespace.marshal_with(string_model, code=201)
     def post(self):
         """
-        Creates a String
+        Instantiate or overwrite a String identified by key with value value
         This endpoint will create a String based the data in the body that is posted
         """
         check_content_type('application/json')
@@ -59,7 +63,7 @@ class StringCollection(Resource):
 @string_namespace.param('key', 'The String identifier')
 class StringResource(Resource):
     """
-    PetResource class
+    StringResource class
 
     Allows the manipulation of a single String
     GET /string{key} - Returns a String with the key
@@ -75,7 +79,7 @@ class StringResource(Resource):
     @string_namespace.marshal_with(string_model)
     def get(self, key):
         """
-        Retrieve a single String
+        Return the String value identified by key
         This endpoint will return a String based on it's key
         """
         app.logger.info("Request to Retrieve a string with key [%s]", key)
@@ -94,7 +98,7 @@ class StringResource(Resource):
     @string_namespace.marshal_with(string_model)
     def put(self, key):
         """
-        Update a String
+        Update the value of the String identified by key
         This endpoint will update a String based the body that is posted
         """
         app.logger.info('Request to Update a string with key [%s]', key)
@@ -118,8 +122,7 @@ class StringResource(Resource):
     @string_namespace.response(204, 'String deleted')
     def delete(self, key):
         """
-        Delete a String
-
+        Delete the String identified by key
         This endpoint will delete a String based the key specified in the path
         """
         app.logger.info('Request to Delete a string with key [%s]', key)
