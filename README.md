@@ -12,6 +12,13 @@ Start Redis server using configuration file.
 $ redis-server /usr/local/etc/redis.conf
 ```
 
+#####Run the API without Docker Container (running app)
+```sh
+pip install --trusted-host pypi.python.org -r requirements.txt   #install project dependencies
+python run.py                                                   # run api
+```
+
+
 ##Build docker Image
 
 1. Install docker from [https://www.docker.com/](https://www.docker.com/)
@@ -45,11 +52,6 @@ $ docker logs e1db3bcb1513
  * Debugger PIN: 268-732-459
 ```
 
-#####Run the API without Docker Container (running app)
-```sh
-pip install --trusted-host pypi.python.org -r requirements.txt   #install project dependencies
-python run.py
-```
 
 #####Access the application at the address [http://localhost:5000/](http://localhost:5000/)
 
