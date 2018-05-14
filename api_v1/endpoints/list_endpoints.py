@@ -26,7 +26,7 @@ class ListCollection(Resource):
     def get(self):
         """
         Return a list of all list of Strings
-        This endpoint will create a List based the data in the body that is posted
+        This endpoint will return all the list of strings in the database
         """
         lists = List.all()
         results = [list.serialize() for list in lists]
