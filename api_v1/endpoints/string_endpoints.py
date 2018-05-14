@@ -3,8 +3,9 @@ from api_v1 import api, app
 from werkzeug.exceptions import NotFound
 from flask_api import status  # HTTP Status Codes
 from api_v1.utils import check_content_type
-from api_v1.models import string_namespace, string_model
+from api_v1.models import string_namespace, string_model, search_model
 from api_v1.models.str_model import String
+
 
 
 ######################################################################
@@ -12,7 +13,7 @@ from api_v1.models.str_model import String
 ######################################################################
 
 ######################################################################
-#  PATH: /strings
+#  PATH: /string
 ######################################################################
 @string_namespace.route('/', strict_slashes=False)
 class StringCollection(Resource):
@@ -57,7 +58,7 @@ class StringCollection(Resource):
 
 
 ######################################################################
-#  PATH: /strings/{key}
+#  PATH: /string/{key}
 ######################################################################
 @string_namespace.route('/<string:key>')
 @string_namespace.param('key', 'The String identifier')
@@ -132,4 +133,25 @@ class StringResource(Resource):
         return 'String deleted', status.HTTP_204_NO_CONTENT
 
 
-
+######################################################################
+#  PATH: /string/search
+######################################################################
+@string_namespace.route('/search')
+class StringSearchResource(Resource):
+    # ------------------------------------------------------------------
+    # RETRIEVE A STRING
+    # ------------------------------------------------------------------
+    @string_namespace.doc('search_string')
+    @string_namespace.response(404, 'String not found')
+    @string_namespace.expect(search_model)
+    @string_namespace.marshal_list_with(string_model)
+    def get(self):
+        """
+        Return the String value identified by key
+        This endpoint will return a String based on it's key
+        """
+        # check_content_type('application/json')
+        search_term = api.payload.get('search_term', None)
+        strings = String.search(search_term)
+        results = [string.serialize() for string in strings]
+        return results, status.HTTP_200_OK

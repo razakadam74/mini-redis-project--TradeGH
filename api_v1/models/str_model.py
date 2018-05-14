@@ -99,3 +99,19 @@ class String(object):
             string = String(key=data['key'], value= data['value']).deserialize(data)
             return string
         return None
+
+    @staticmethod
+    def search(search_term):
+        strings = []
+        for key in redis_store.keys(String.generate_key('*')):
+            data = pickle.loads(redis_store.get(key))
+            string = String(data['key']).deserialize(data)
+            strings.append(string)
+
+        results = []
+        for string in strings:
+            if string.get('key', None).find(search_term) != -1:
+                results.append(string)
+        return results
+
+

@@ -1,7 +1,15 @@
 # Mini Redis Project by TradeGH
 This is the Take-Home Project specification for candidates for Engineering @ Trade
+This is a server that enables clients to create, query, and manipulate three basic data structures
+ (​String​, L​ist<String>​, ​Map<String, String>​) via commands issued over the network.
+
+##considerations
+speed
+intuition
+Easy to understand
 
 
+ 
 ##Install and start redis
 ```bash
 $ brew install redis
@@ -11,6 +19,9 @@ Start Redis server using configuration file.
 ```bash
 $ redis-server /usr/local/etc/redis.conf
 ```
+
+#####configure Redis Server connection
+modify REDIS_URL in config.py
 
 #####Run the API without Docker Container (running app)
 ```sh

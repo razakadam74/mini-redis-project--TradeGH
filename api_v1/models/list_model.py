@@ -23,12 +23,16 @@ class List(object):
         self.value = value
 
     def save(self):
-        """ Saves a list in the database """
+        ''' Saves a list in the database '''
+        self.validate_inputs()
+        redis_store.set(List.generate_key(self.key), pickle.dumps(self.serialize()))
+
+    def validate_inputs(self):
+        '''Check that key and value are set'''
         if self.value is None:
             raise DataValidationError('value attribute is not set')
         if self.key is None:
             raise DataValidationError('key attribute is not set')
-        redis_store.set(List.generate_key(self.key), pickle.dumps(self.serialize()))
 
     def delete(self):
         """ Deletes a List from the database """
@@ -103,12 +107,10 @@ class List(object):
     ######################################################################
     @staticmethod
     def append(payload):
+        '''Append a String value to the end of the List identified by key'''
         key = payload.get('key', None)
         value = payload.get('value', None)
-        if not key:
-            raise DataValidationError('key attribute is not found')
-        if not value:
-            raise DataValidationError('value attribute is not found')
+        List.validate_key_and_value(key, value)
         list = List.find(key)
         if list:
             list.value.append(value)
@@ -117,7 +119,16 @@ class List(object):
         raise DataValidationError('key attribute is not found')
 
     @staticmethod
+    def validate_key_and_value(key, value):
+        '''validate key and value'''
+        if not key:
+            raise DataValidationError('key attribute is not found')
+        if not value:
+            raise DataValidationError('value attribute is not found')
+
+    @staticmethod
     def pop(payload):
+        '''Remove the last element in the List identified by key, and return that'''
         key = payload.get('key', None)
         if not key:
             raise DataValidationError('key attribute is not found')

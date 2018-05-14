@@ -12,7 +12,7 @@ from api_v1.models.map_model import Map
 ######################################################################
 
 ######################################################################
-#  PATH: /maps
+#  PATH: /map
 ######################################################################
 @map_namespace.route('/', strict_slashes=False)
 class MapCollection(Resource):
@@ -55,7 +55,7 @@ class MapCollection(Resource):
 
 
 ######################################################################
-#  PATH: /maps/{key}
+#  PATH: /map/{key}
 ######################################################################
 @map_namespace.route('/<string:key>')
 @map_namespace.param('key', 'The Map identifier')
@@ -152,7 +152,7 @@ class MapResource(Resource):
 
 
 ######################################################################
-#  PATH: /maps/{key}/{inner_key}
+#  PATH: /map/{key}/{inner_key}
 ######################################################################
 @map_namespace.route('/<string:key>/<string:inner_key>')
 @map_namespace.param('key', 'The Map identifier')

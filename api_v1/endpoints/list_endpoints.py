@@ -12,7 +12,7 @@ from api_v1.models.list_model import List
 ######################################################################
 
 ######################################################################
-#  PATH: /lists
+#  PATH: /list
 ######################################################################
 @list_namespace.route('/', strict_slashes=False)
 class ListCollection(Resource):
@@ -55,7 +55,7 @@ class ListCollection(Resource):
 
 
 ######################################################################
-#  PATH: /lists/{key}
+#  PATH: /list/{key}
 ######################################################################
 @list_namespace.route('/<string:key>')
 @list_namespace.param('key', 'The List identifier')
