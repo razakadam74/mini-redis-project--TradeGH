@@ -7,8 +7,6 @@ from api_v1 import redis_store
 
 ######################################################################
 # Map Model for database
-#   This class must be initialized with use_db(redis) before using
-#   where redis is a value connection to a Redis database
 ######################################################################
 
 class Map(object):
@@ -25,12 +23,17 @@ class Map(object):
         self.value = value
 
     def save(self):
-        """ Saves a map_object in the database """
+        ''' Saves a map_object in the database '''
+        self.validate_inputs()
+        redis_store.set(Map.generate_key(self.key), pickle.dumps(self.serialize()))
+
+    def validate_inputs(self):
+        '''Check that key and value are set'''
         if self.value is None:
             raise DataValidationError('value attribute is not set')
         if self.key is None:
             raise DataValidationError('key attribute is not set')
-        redis_store.set(Map.generate_key(self.key), pickle.dumps(self.serialize()))
+
 
     def delete(self):
         """ Deletes a Map from the database """
@@ -41,13 +44,6 @@ class Map(object):
         if not key:
             raise DataValidationError('key attribute is not found')
         value = payload.get('value', None)
-        # if not value:
-        #     raise DataValidationError('value attribute is not found')
-        # self.value.append({value.get('key', None): {
-        #     'key': value.get('key', None),
-        #     'value': value.get('value', None)
-        # }})
-        # self.save()
         return self
 
     def serialize(self):
@@ -81,6 +77,7 @@ class Map(object):
         return None
 
     def delete_item_from_map(self, inner_key):
+        '''Delete an item with key identified in this map'''
         index , map_object = self.find_map_within_map(inner_key)
         del self.value[index]
         self.save()
@@ -131,10 +128,25 @@ class Map(object):
     ######################################################################
     #  EXTRA STATIC  M E T H O D S
     ######################################################################
-
     @staticmethod
     def append(key, payload):
-        map_object = Map.get_value_with_key(key)
+        '''Add the mapping mapkey -> mapvalue to the Map identified by key.'''
+        map_object = Map.find(key)
+        payload_key, new_key, new_value = Map.validate_new_item(map_object, payload)
+        obj = {
+            'key': payload_key,
+            'value': {
+                'key': new_key,
+                'value': new_value
+            }
+        }
+        map_object.value.append(obj)
+        map_object.save()
+        return map_object
+
+    @staticmethod
+    def validate_new_item(map_object,payload ):
+        '''Validate user input'''
         if not map_object:
             raise DataValidationError('No map found with the key "{}" '.format(key))
         payload_key = payload.get('key', None)
@@ -149,16 +161,7 @@ class Map(object):
         new_value = value.get('value', None)
         if not new_value:
             raise DataValidationError('Value attribute is not found in the new item to add')
-        obj = {
-            'key': payload_key,
-            'value': {
-                'key': new_key,
-                'value': new_value
-            }
-        }
-        map_object.value.append(obj)
-        map_object.save()
-        return map_object
+        return payload_key, new_key, new_value
 
     ######################################################################
     #  F I N D E R   M E T H O D S
@@ -176,6 +179,7 @@ class Map(object):
 
     @staticmethod
     def check_if_api_payload_is_valid(value):
+        '''Validates api payload'''
         if not value:
             raise DataValidationError('map key and value is not found')
         if not value.get('key', None):

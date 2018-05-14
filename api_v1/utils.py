@@ -12,8 +12,10 @@ def check_content_type(content_type):
 # Custom Exceptions
 ######################################################################
 class DataValidationError(ValueError):
+    '''Error class for validating user input'''
     pass
 
 class DatabaseConnectionError(ConnectionError):
+    '''Error class for database connection'''
     pass
 

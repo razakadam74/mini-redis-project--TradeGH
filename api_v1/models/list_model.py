@@ -7,8 +7,6 @@ from api_v1 import redis_store
 
 ######################################################################
 # List Model for database
-#   This class must be initialized with use_db(redis) before using
-#   where redis is a value connection to a Redis database
 ######################################################################
 
 class List(object):

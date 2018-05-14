@@ -7,8 +7,6 @@ from api_v1 import redis_store
 
 ######################################################################
 # String Model for database
-#   This class must be initialized with use_db(redis) before using
-#   where redis is a value connection to a Redis database
 ######################################################################
 
 class String(object):
@@ -25,12 +23,16 @@ class String(object):
         self.value = value
 
     def save(self):
-        """ Saves a string in the database """
+        ''' Saves a string in the database '''
+        self.validate_inputs()
+        redis_store.set(String.generate_key(self.key), pickle.dumps(self.serialize()))
+
+    def validate_inputs(self):
+        '''Check that key and value are set'''
         if self.value is None:
             raise DataValidationError('value attribute is not set')
         if self.key is None:
             raise DataValidationError('key attribute is not set')
-        redis_store.set(String.generate_key(self.key), pickle.dumps(self.serialize()))
 
     def delete(self):
         """ Deletes a String from the database """
