@@ -66,15 +66,37 @@ class Map(object):
             raise DataValidationError('Invalid map_object data: ' + str(Map.__validator.errors))
         return self
 
-    @staticmethod
-    def check_if_api_payload_is_valid(value):
-        if not value:
-            raise DataValidationError('map key and value is not found')
-        if not value.get('key', None):
-            raise DataValidationError('key attribute is not found')
-        if not value.get('value', None):
-            raise DataValidationError('value attribute is not found')
-        return True
+    def get_value_with_key(self, inner_key):
+        '''
+        Return the String identified by mapkey from within the Map identified by key.
+        :param inner_key: mapkey
+        :return: String within the Map
+        '''
+        item = self.find_map_within_map(inner_key)
+        if not item or not item[1]:
+            return None
+        map_object = item[1].get('value', None)
+        if map_object:
+            return map_object.get('value', None)
+        return None
+
+    def delete_item_from_map(self, inner_key):
+        index , map_object = self.find_map_within_map(inner_key)
+        del self.value[index]
+        self.save()
+
+    def find_map_within_map(self, inner_key):
+        '''
+        This function returns the map with key same as inner_key
+        :param inner_key: key to identify map with
+        :return: Map or None if key not found
+        '''
+        if not inner_key:
+            raise DataValidationError('Invalid key within the Map identified by key')
+        for index, map_object in enumerate(self.value):
+            if map_object.get('key', None) == inner_key:
+                return index, map_object
+        return None
 
     ######################################################################
 
@@ -112,7 +134,7 @@ class Map(object):
 
     @staticmethod
     def append(key, payload):
-        map_object = Map.find(key)
+        map_object = Map.get_value_with_key(key)
         if not map_object:
             raise DataValidationError('No map found with the key "{}" '.format(key))
         payload_key = payload.get('key', None)
@@ -128,7 +150,8 @@ class Map(object):
         if not new_value:
             raise DataValidationError('Value attribute is not found in the new item to add')
         obj = {
-            payload_key : {
+            'key': payload_key,
+            'value': {
                 'key': new_key,
                 'value': new_value
             }
@@ -150,3 +173,14 @@ class Map(object):
             map_object = Map(key=data['key'], value=data['value']).deserialize(data)
             return map_object
         return None
+
+    @staticmethod
+    def check_if_api_payload_is_valid(value):
+        if not value:
+            raise DataValidationError('map key and value is not found')
+        if not value.get('key', None):
+            raise DataValidationError('key attribute is not found')
+        if not value.get('value', None):
+            raise DataValidationError('value attribute is not found')
+        return True
+

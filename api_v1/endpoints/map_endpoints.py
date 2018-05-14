@@ -3,7 +3,7 @@ from api_v1 import api, app
 from werkzeug.exceptions import NotFound
 from flask_api import status  # HTTP Status Codes
 from api_v1.utils import check_content_type
-from api_v1.models import map_namespace, map_model, map_model_get, map_item
+from api_v1.models import map_namespace, map_model, map_model_get, map_item, map_value_model
 from api_v1.models.map_model import Map
 
 
@@ -81,11 +81,10 @@ class MapResource(Resource):
         This endpoint will return a Map based on it's key
         """
         app.logger.info("Request to Retrieve a map_object with key [%s]", key)
-        map_object = Map.find(key)
+        map_object = Map.get_value_with_key(key)
         if not map_object:
             raise NotFound("Map with key '{}' was not found.".format(key))
         return map_object.serialize(), status.HTTP_200_OK
-
 
     # ------------------------------------------------------------------
     # ADD A MAP TO AN IDENTIFIED MAP
@@ -123,7 +122,7 @@ class MapResource(Resource):
         """
         app.logger.info('Request to Update a map_object with key [%s]', key)
         check_content_type('application/json')
-        map_object = Map.find(key)
+        map_object = Map.get_value_with_key(key)
         if not map_object:
             # api.abort(404, "Map with key '{}' was not found.".format(key))
             raise NotFound('Map with key [{}] was not found.'.format(key))
@@ -146,7 +145,7 @@ class MapResource(Resource):
         This endpoint will delete a Map based the key specified in the path
         """
         app.logger.info('Request to Delete a map_object with key [%s]', key)
-        map_object = Map.find(key)
+        map_object = Map.get_value_with_key(key)
         if map_object:
             map_object.delete()
         return 'Map deleted', status.HTTP_204_NO_CONTENT
@@ -162,69 +161,42 @@ class MapOtherResource(Resource):
     """ Handles all interactions with a particular Map """
 
     # ------------------------------------------------------------------
-    # MAP ALL MAPS
+    # Return the String identified by mapkey from within the
+    # Map identified by key.
     # ------------------------------------------------------------------
     @map_namespace.doc('get_mapkey value')
-    @map_namespace.marshal_list_with(map_item)
+    # @map_namespace.marshal_list_with(map_model_get)
+    # @map_namespace.expect(map_model_get)
     def get(self, key, inner_key):
         """
-        Return the String identified by mapkey from within the Map identified by key.
+        Return the String identified by map key from within the Map identified by key.
         This endpoint will return the String identified by mapkey from within the Map identified by key.
         """
         app.logger.info('Request to Update a map_object with key [%s]', key)
-        #check_content_type('application/json')
+        # check_content_type('application/json')
         map_object = Map.find(key)
         if not map_object:
             raise NotFound("Map with key '{}' was not found.".format(key))
-        item = map_object.value.value
+        item = map_object.get_value_with_key(inner_key)
         # item  = map_object.value.get(inner_key, None)
-        # if not item:
-        #     raise NotFound("Item with key '{}' was not found in '{}' Map.".format(inner_key, key))
+        if not item:
+            # map_object.value[0]['key']
+            raise NotFound("Item with key '{}' was not found in '{}' Map.".format(inner_key, key))
         return item, status.HTTP_200_OK
 
-
-
-
-# 
-# @map_namespace.route('/append')
-# class ListExtraMethods(Resource):
-# 
-#     # ------------------------------------------------------------------
-#     # ADD A NEW STRING TO MAP
-#     # ------------------------------------------------------------------
-#     @map_namespace.doc('append a new string to map_object')
-#     @map_namespace.expect(list_model_append)
-#     @map_namespace.response(400, 'The posted data was not valid')
-#     @map_namespace.response(201, 'String added successfully')
-#     @map_namespace.marshal_with(map_model, code=201)
-#     def post(self):
-#         """
-#         Append a String value to the end of the Map identified by key
-#         This endpoint will create a Map based the data in the body that is posted
-#         """
-#         check_content_type('application/json')
-#         app.logger.info('Payload = %s', api.payload)
-#         map_object = Map.append(api.payload)
-#         app.logger.info('Map with new key [%s] saved!', map_object.key)
-#         return map_object.serialize(), status.HTTP_201_CREATED
-# 
-# 
-# @map_namespace.route('/pop')
-# class ListExtraMethods(Resource):
-#     # ------------------------------------------------------------------
-#     # POP LAST ITEM IN THE MAP
-#     # ------------------------------------------------------------------
-#     @map_namespace.doc('pop the last item in the map_object of string with key')
-#     @map_namespace.response(404, 'Map not found')
-#     @map_namespace.response(400, 'The posted Map data was not valid')
-#     @map_namespace.expect(list_model_pop)
-#     # @map_namespace.marshal_with(list_model_pop)
-#     def put(self):
-#         """
-#         Remove the last element in the Map identified by key, and return that element.
-#         This endpoint will update a Map based the body that is posted
-#         """
-#         check_content_type('application/json')
-#         app.logger.info('Payload = %s', api.payload)
-#         item = Map.pop(api.payload)
-#         return item, status.HTTP_200_OK
+    # ------------------------------------------------------------------
+    # DELETE A MAP
+    # ------------------------------------------------------------------
+    @map_namespace.doc('delete_strings')
+    @map_namespace.response(204, 'Map deleted')
+    def delete(self, key, inner_key):
+        """
+        Delete the value identified by map key from the Map identified by key.
+        This endpoint will delete a Map with the Map based the key specified in the path
+        """
+        app.logger.info('Request to Delete a map_object with key [%s]', key)
+        map_object = Map.find(key)
+        if not map_object:
+            raise NotFound("Map with key '{}' was not found.".format(key))
+        map_object.delete_item_from_map(inner_key)
+        return 'Map deleted', status.HTTP_204_NO_CONTENT
