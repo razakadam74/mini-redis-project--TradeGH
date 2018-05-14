@@ -100,12 +100,13 @@ class MapResource(Resource):
         This endpoint will return a Map based on it's key
         """
         app.logger.info("Request to Retrieve a map_object with key [%s]", key)
-        map_object = Map.find(key)
-        if not map_object:
-            raise NotFound("Map with key '{}' was not found.".format(key))
-        map_object.add_map_item(api.payload)
-        return map_object.serialize(), status.HTTP_200_OK
-
+        map_object = Map.append(key, api.payload)
+        # map_object = Map.find(key)
+        # if not map_object:
+        #     raise NotFound("Map with key '{}' was not found.".format(key))
+        # # map_object.add_map_item(api.payload)
+        # # return map_object.serialize(), status.HTTP_200_OK
+        return map_object, status.HTTP_200_OK
 
     # ------------------------------------------------------------------
     # UPDATE AN EXISTING MAP

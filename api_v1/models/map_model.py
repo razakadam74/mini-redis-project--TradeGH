@@ -15,7 +15,7 @@ class Map(object):
     logger = logging.getLogger(__name__)
     schema = {
         'key': {'type': 'string', 'required': True},
-        'value': {'type': 'dict', 'required': True}
+        'value': {'type': 'list', 'required': True}
     }
     __validator = Validator(schema)
 
@@ -41,12 +41,14 @@ class Map(object):
         if not key:
             raise DataValidationError('key attribute is not found')
         value = payload.get('value', None)
-        if not value:
-            raise DataValidationError('value attribute is not found')
-        self.value[key] = value
-        self.save()
+        # if not value:
+        #     raise DataValidationError('value attribute is not found')
+        # self.value.append({value.get('key', None): {
+        #     'key': value.get('key', None),
+        #     'value': value.get('value', None)
+        # }})
+        # self.save()
         return self
-
 
     def serialize(self):
         """ serializes a Map into a dictionary """
@@ -104,25 +106,36 @@ class Map(object):
             results.append(map_object)
         return results
 
-######################################################################
-#  EXTRA STATIC  M E T H O D S
-######################################################################
+    ######################################################################
+    #  EXTRA STATIC  M E T H O D S
+    ######################################################################
 
     @staticmethod
-    def append(payload):
-        key = payload.get('key', None)
-        value = payload.get('value', None)
-        if not key:
+    def append(key, payload):
+        map_object = Map.find(key)
+        if not map_object:
+            raise DataValidationError('No map found with the key "{}" '.format(key))
+        payload_key = payload.get('key', None)
+        if not payload_key:
             raise DataValidationError('key attribute is not found')
+        value = payload.get('value', None)
         if not value:
             raise DataValidationError('value attribute is not found')
-        map_object = Map.find(key)
-        if map_object:
-            map_object.value.append(value)
-            map_object.save()
-            return map_object
-        raise DataValidationError('key attribute is not found')
-
+        new_key = value.get('key', None)
+        if not new_key:
+            raise DataValidationError('key attribute is not found in the new item to add')
+        new_value = value.get('value', None)
+        if not new_value:
+            raise DataValidationError('Value attribute is not found in the new item to add')
+        obj = {
+            payload_key : {
+                'key': new_key,
+                'value': new_value
+            }
+        }
+        map_object.value.append(obj)
+        map_object.save()
+        return map_object
 
     ######################################################################
     #  F I N D E R   M E T H O D S

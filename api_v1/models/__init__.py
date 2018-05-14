@@ -6,7 +6,7 @@ from api_v1 import api
 ######################################################################
 string_namespace = api.namespace('string', description='Strings Operations')
 list_namespace = api.namespace('list', description='List Operations')
-map_namespace =api.namespace('map', description='Map Operations')
+map_namespace = api.namespace('map', description='Map Operations')
 
 ######################################################################
 #  MODELS
@@ -30,17 +30,20 @@ list_model_pop = api.model('ListPop', {
     'key': fields.String(readOnly=True, description='The unique id assigned to list')
 })
 
-
-map_item = api.model('Item', {
+map_value_model = api.model('Map_value', {
     'key': fields.String(readOnly=True, description='The unique id assigned to string'),
     'value': fields.String(required=True, description='The string')
 })
 
-map_model = api.model('String', {
+map_item = api.model('Item', {
     'key': fields.String(readOnly=True, description='The unique id assigned to dict'),
-    'value': fields.Nested(map_item, required=True, description='The string')
+    'value': fields.Nested(map_value_model, required=True, description='The string')
 })
 
+map_model = api.model('Map_model', {
+    'key': fields.String(readOnly=True, description='The unique id assigned to dict'),
+    'value': fields.List(fields.Nested(map_item), required=True, description='The string')
+})
 
 map_model_get = api.model('MapGet', {
     'key': fields.String(readOnly=True, description='The unique id assigned to list')
